@@ -1,0 +1,162 @@
+NAME
+    Net::SNMP::Mixin - mixin framework for Net::SNMP
+
+VERSION
+    Version 0.01_01, first developer release.
+
+ABSTRACT
+    Thin framework to access cooked SNMP information from SNMP agents with
+    various mixins to Net::SNMP.
+
+SYNOPSIS
+      use Net::SNMP;
+      use Net::SNMP::Mixin qw(mixer init_mixins);
+
+      my $session = Net::SNMP->session( -hostname => 'example.com' );
+  
+      # method mixin and initialization
+      $session->mixer(qw/Net::SNMP::Mixin::Foo Net::SNMP::Mixin::Bar/);
+      $session->init_mixins();
+  
+      # event_loop for nonblocking sessions
+      snmp_dispatcher() if $Net::SNMP::NONBLOCKING;
+      die $session->error if $session->error;
+
+      # use mixed-in methods to retrieve cooked SNMP info
+      my $a = $session->get_foo_a();
+      my $b = $session->get_bar_b();
+
+DESCRIPTION
+    Net::SNMP implements already the methods to retrieve raw SNMP values
+    from the agents. With the help of specialized mixins, the access to
+    these raw SNMP values is simplified and necessary calculations on these
+    values are already done for gaining high level information.
+
+    This module provides helper functions in order to mixin methods into the
+    inheritance tree of the Net::SNMP session instances or the Net::SNMP
+    class itself.
+
+    The standard Net::SNMP get_... methods are still supported and the
+    mixins fetch itself the needed SNMP values during initialization with
+    these standard get_... methods. Blocking and non blocking sessions are
+    supported. The mixins don't change the Net::SNMP session instance,
+    besides storing additional payload in the object space prefixed with the
+    unique mixin module names as the hash key.
+
+DEFAULT EXPORTS
+    The following helper methods are exported by default into the Net::SNMP
+    namespace.
+
+  mixer(@module_names)
+      # class method
+      Net::SNMP->mixer(qw/Net::SNMP::Mixin::Foo/);
+
+      # instance method
+      $session->mixer(qw/Net::SNMP::Mixin::Yazz Net::SNMP::Mixin::Brazz/)
+
+    Called as class method mixes the methods for all session instances. This
+    is useful for agents supporting the same set of MIBs.
+
+    Called as instance method mixes only for the calling session instance.
+    This is useful for SNMP agents not supporting the same set of MIBs and
+    therefore not the same set of mixin modules.
+
+    Even the SNMP agents from a big network company don't support the most
+    useful standard MIBs. They always use proprietary private enterprise
+    MIBs (ring, ring, Cisco, do you hear the bells, grrrmmml).
+
+    The name of the modules to mix-in is passed to this method as a list.
+    You can mix class and instance mixins as you like, but importing the
+    same mixin module twice is an error.
+
+    Returns the invocant for chaining method calls, dies on error.
+
+  init_mixins($reload)
+      $session->init_mixins();
+      $session->init_mixins(1);
+
+    This method redispatches to every *_init()* methods in the loaded mixin
+    modules. The raw SNMP values for the mixins are loaded during this call
+    - or via callbacks during the snmp_dispatcher event loop for nonblocking
+    sessions - and stored in the object space. The mixed methods deliver
+    afterwards cooked meal from these values.
+
+    The MIB values are reloaded for the mixins if the argument $reload is
+    true. It's an error calling this method twice without forcing $reload.
+
+    Returns nothing, dies on error.
+
+GUIDELINES FOR MIXIN AUTHORS
+    As a mixin-module author you must respect the following design
+    guidelines:
+
+    *   Write more separate mixin-modules instead of 'one module fits all'.
+
+    *   Don't build interdependancies to other mixin-modules.
+
+    *   In no circumstance change the given attributes of the calling
+        Net::SNMP session instance. In any case stay with the given behavior
+        for blocking, translation, debug, retries, timeout, ... of the
+        object. Remember it's a mixin and no sub- or superclass.
+
+    *   Use Sub::Exporter and export the mixin methods by default.
+
+    *   Implement the *_init()* method and fetch SNMP values only during
+        this call. If the session instance is nonblocking use a callback to
+        work properly with the *snmp_dispatcher()* event loop. In no
+        circumstance load additonal SNMP values outside the *_init()*
+        method.
+
+    See the Net::SNMP::Mixin::System module as a blueprint for a simple
+    mixin module.
+
+DEVELOPER INFORMATION
+    If mixer() is called as a class method, the mixin-methods are just
+    imported into the Net::SNMP package.
+
+    If called as an instance method for the first time, the methods are
+    imported into a newly generated, unique package for this session. The
+    session instance is reblessed into this new package. The new package
+    inherits from the Net::SNMP class. Successive calls for this session
+    instance imports just the additional mixin-methods into the already
+    generated package for this instance.
+
+SEE ALSO
+    Sub::Exporter, and the Net::SNMP::Mixin::... documentations for more
+    details about the provided mixin methods.
+
+REQUIREMENTS
+    Net::SNMP, Sub::Exporter, Package::Generator, Package::Reaper
+
+BUGS
+    Please report any bugs or feature requests to "bug-net-snmp-mixin at
+    rt.cpan.org", or through the web interface at
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-SNMP-Mixin>. I will
+    be notified, and then you'll automatically be notified of progress on
+    your bug as I make changes.
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc Net::SNMP::Mixin
+
+    You can also look for information at:
+
+    * AnnoCPAN: Annotated CPAN documentation
+        <http://annocpan.org/dist/Net-SNMP-Mixin>
+
+    * CPAN Ratings
+        <http://cpanratings.perl.org/d/Net-SNMP-Mixin>
+
+    * RT: CPAN's request tracker
+        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-SNMP-Mixin>
+
+    * Search CPAN
+        <http://search.cpan.org/dist/Net-SNMP-Mixin>
+
+COPYRIGHT & LICENSE
+    Copyright 2008 Karl Gaissmaier, all rights reserved.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
