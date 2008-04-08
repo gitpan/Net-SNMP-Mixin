@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Test::More;
 
-plan tests => 37;
+plan tests => 41;
 
 use_ok('Net::SNMP');
 use_ok('Net::SNMP::Mixin::Util');
@@ -30,7 +30,22 @@ is( normalize_mac( $mac[0] ), $mac[1], "$mac[0] -> $mac[1]" );
 @mac = ( '0:0:0:0:0:0', '00:00:00:00:00:00', );
 is( normalize_mac( $mac[0] ), $mac[1], "$mac[0] -> $mac[1]" );
 
+@mac = ( '0a:a:a:a:a:a', '0A:0A:0A:0A:0A:0A', );
+is( normalize_mac( $mac[0] ), $mac[1], "$mac[0] -> $mac[1]" );
+
+@mac = ( 'a:a:a:a:a:0a', '0A:0A:0A:0A:0A:0A', );
+is( normalize_mac( $mac[0] ), $mac[1], "$mac[0] -> $mac[1]" );
+
+@mac = ( '0a:a:a:a:a:0a', '0A:0A:0A:0A:0A:0A', );
+is( normalize_mac( $mac[0] ), $mac[1], "$mac[0] -> $mac[1]" );
+
+@mac = ( '0:0:0:0:0:0', '00:00:00:00:00:00', );
+is( normalize_mac( $mac[0] ), $mac[1], "$mac[0] -> $mac[1]" );
+
 @mac = ( '00:0:a0:0:0:F0', '00:00:A0:00:00:F0', );
+is( normalize_mac( $mac[0] ), $mac[1], "$mac[0] -> $mac[1]" );
+
+@mac = ( '00-0b-a0-0c-0F-00', '00:0B:A0:0C:0F:00', );
 is( normalize_mac( $mac[0] ), $mac[1], "$mac[0] -> $mac[1]" );
 
 @mac = ( '000ba0-0c0F00', '00:0B:A0:0C:0F:00', );
@@ -62,10 +77,6 @@ is( normalize_mac( $mac[0] ),
   $mac[1], "wrong format '$mac[0]' returns undef" );
 
 @mac = ( '000ba0_0c0F00', undef, );
-is( normalize_mac( $mac[0] ),
-  $mac[1], "wrong format '$mac[0]' returns undef" );
-
-@mac = ( '000b-a00c-0F00', undef, );
 is( normalize_mac( $mac[0] ),
   $mac[1], "wrong format '$mac[0]' returns undef" );
 

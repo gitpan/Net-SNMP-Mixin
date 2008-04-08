@@ -20,11 +20,11 @@ Net::SNMP::Mixin::Util - helper class for Net::SNMP mixins
 
 =head1 VERSION
 
-Version 0.01_01
+Version 0.01_02
 
 =cut
 
-our $VERSION = '0.01_01';
+our $VERSION = '0.01_02';
 
 =head1 SYNOPSIS
 
@@ -50,6 +50,7 @@ convert from:
   '1.3.6.1.2.1.17.1.4.1.2.2' => 'bar'
 
 to:
+
   '1' => 'foo'
   '2' => 'bar'
   
@@ -133,13 +134,16 @@ sub hex2octet {
 
 =item B<< normalize_mac($mac_address) >>
 
-normalize MAC addresses to the form XX:XX:XX:XX:XX:XX
+normalize MAC addresses to the IEEE form XX:XX:XX:XX:XX:XX
 
-    normalize x:xx:x:xx:Xx:xx to XX:XX:XX:XX:XX:XX
-    or        xxxxxx-xxxxxx   to XX:XX:XX:XX:XX:XX
-    or        xxxx.xxxx.xxxx  to XX:XX:XX:XX:XX:XX
-    or     0x xxxxxxxxxxxx    to XX:XX:XX:XX:XX:XX
-    or     plain packed '6C'  to XX:XX:XX:XX:XX:XX
+    normalize the different formats like,
+
+              x:xx:x:xx:Xx:xx     to XX:XX:XX:XX:XX:XX
+    or        xxxxxx-xxxxxx       to XX:XX:XX:XX:XX:XX
+    or        xx-xx-xx-xx-xx-xx   to XX:XX:XX:XX:XX:XX
+    or        xxxx.xxxx.xxxx      to XX:XX:XX:XX:XX:XX
+    or     0x xxxxxxxxxxxx        to XX:XX:XX:XX:XX:XX
+    or     plain packed '6C'      to XX:XX:XX:XX:XX:XX
 
 or returns undef for format errors.
 
@@ -159,24 +163,23 @@ sub normalize_mac {
   # to upper case
   my $norm_address = uc($mac);
 
-  # remove middle '-'
-  $norm_address =~ s/-//;
+  # remove '-' in bloody Microsoft format
+  $norm_address =~ s/-//g;
 
-  # remove '.' in some Cisco formats
+  # remove '.' in bloody Cisco format
   $norm_address =~ s/\.//g;
 
-  # remove '0X' in front of
+  # remove '0X' in front of, we are already upper case
   $norm_address =~ s/^0X//;
 
+  # we are already upper case
   my $hex_digit = qr/[A-F,0-9]/;
+
+  # insert leading 0 in bloody Sun format
+  $norm_address =~ s/\b($hex_digit){1}\b/0$1/g;
 
   # insert ':' aabbccddeeff -> aa:bb:cc:dd:ee:ff
   $norm_address =~ s/($hex_digit{2})(?=$hex_digit)/$1:/g;
-
-  # insert missing 0, sometimes used with x:xx:x:x:xx:x format
-  $norm_address =~ s/^($hex_digit):/0$1:/;         # handling start case
-  $norm_address =~ s/:($hex_digit)$/:0$1/;         # handling end case
-  $norm_address =~ s/:($hex_digit)(?=:)/:0$1/g;    # handling middle cases
 
   # wrong format
   return unless $norm_address =~ m /^($hex_digit{2}:){5}$hex_digit{2}$/;

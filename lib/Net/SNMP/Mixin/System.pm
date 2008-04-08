@@ -13,7 +13,10 @@ my $prefix = __PACKAGE__;
 # this module import config
 #
 use Carp ();
-use Net::SNMP::Mixin::Util qw/idx2val/;
+
+# normally needed utils, but not for this simple blueprint mixin.
+# Please see the other mixins in Net::SNMP::Mixin::...
+#use Net::SNMP::Mixin::Util qw/idx2val/;
 
 # this module export config
 #
@@ -46,11 +49,11 @@ Net::SNMP::Mixin::System - mixin class for the mib-2 system-group values
 
 =head1 VERSION
 
-Version 0.01_01
+Version 0.01_02
 
 =cut
 
-our $VERSION = '0.01_01';
+our $VERSION = '0.01_02';
 
 =head1 SYNOPSIS
 
