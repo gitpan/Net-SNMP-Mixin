@@ -10,11 +10,11 @@ Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 =head1 VERSION
 
-Version 0.01_02
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01_02';
+our $VERSION = '0.02';
 
 =head1 ABSTRACT
 

@@ -20,11 +20,11 @@ Net::SNMP::Mixin::Util - helper class for Net::SNMP mixins
 
 =head1 VERSION
 
-Version 0.01_02
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01_02';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -176,7 +176,7 @@ sub normalize_mac {
   my $hex_digit = qr/[A-F,0-9]/;
 
   # insert leading 0 in bloody Sun format
-  $norm_address =~ s/\b($hex_digit){1}\b/0$1/g;
+  $norm_address =~ s/\b($hex_digit)\b/0$1/g;
 
   # insert ':' aabbccddeeff -> aa:bb:cc:dd:ee:ff
   $norm_address =~ s/($hex_digit{2})(?=$hex_digit)/$1:/g;

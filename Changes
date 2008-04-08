@@ -1,5 +1,8 @@
 Revision history for Net-SNMP-Mixin
 
+0.02    Di 8. Apr 23:40:43 CEST 2008
+	Minor fixes
+
 0.01_02 Di 8. Apr 11:30:27 CEST 2008
 	Minor POD corrections.
 	More tests

@@ -49,11 +49,11 @@ Net::SNMP::Mixin::System - mixin class for the mib-2 system-group values
 
 =head1 VERSION
 
-Version 0.01_02
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01_02';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -129,7 +129,7 @@ sub _init {
   die "$prefix already initalized and reload not forced.\n"
   	if $session->{$prefix}{__initialized} && not $reload;
 
-  # initialize the object for forwarding databases infos
+  # initialize the object system-group infos
   _fetch_system_group($session);
   return if $session->error;
 
