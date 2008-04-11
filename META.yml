@@ -1,6 +1,6 @@
 ---
 name: Net-SNMP-Mixin
-version: 0.03
+version: 0.04
 author:
   - 'Karl Gaissmaier <karl.gaissmaier (at) uni-ulm.de>'
 abstract: mixin framework for Net::SNMP
@@ -14,16 +14,18 @@ requires:
   Scalar::Util: 1.18
   Sub::Exporter: 0.978
   perl: 5.6.0
+build_requires:
+  Module::Build: 0
 provides:
   Net::SNMP::Mixin:
     file: lib/Net/SNMP/Mixin.pm
-    version: 0.03
+    version: 0.04
   Net::SNMP::Mixin::System:
     file: lib/Net/SNMP/Mixin/System.pm
-    version: 0.03
+    version: 0.04
   Net::SNMP::Mixin::Util:
     file: lib/Net/SNMP/Mixin/Util.pm
-    version: 0.03
+    version: 0.04
 generated_by: Module::Build version 0.2808
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

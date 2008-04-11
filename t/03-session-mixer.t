@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use Test::More;
-use Module::Build;
 
 eval "use Net::SNMP";
 plan skip_all => "Net::SNMP required for testing Net::SNMP::Mixin" if $@;

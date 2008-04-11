@@ -1,5 +1,9 @@
 Revision history for Net-SNMP-Mixin
 
+0.04    Fri Apr 11 19:44:14 CEST 2008
+	added build_requires in Build.PL
+	no interface change
+
 0.03    Mi 9. Apr 23:16:09 CEST 2008
 	Minor change in a test
 

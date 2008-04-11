@@ -10,11 +10,11 @@ Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 ABSTRACT
 
@@ -208,8 +208,11 @@ sub init_mixins {
   my @class_mixins    = keys %register_class_mixins;
   my @instance_mixins = keys %{ $session->{$prefix}{mixins} };
 
+  # for each mixin module ...
   foreach my $mixin ( @class_mixins, @instance_mixins ) {
-    eval "${mixin}::_init(\$session, \$reload)";
+
+    # call the _init() method in module $mixin
+    eval "\$session->${mixin}::_init(\$reload)";
     Carp::croak $@ if $@;
   }
 }
