@@ -10,11 +10,11 @@ Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 ABSTRACT
 
@@ -40,10 +40,16 @@ use Package::Reaper;
 #
 # this module export config
 #
+my @mixin_methods;
+
+BEGIN {
+  @mixin_methods = ( qw/ mixer init_mixins /);
+}
+
 use Sub::Exporter -setup => {
   into    => 'Net::SNMP',
-  exports => [qw/mixer init_mixins/],
-  groups  => { default => [qw/mixer init_mixins/] }
+  exports => [@mixin_methods],
+  groups  => { default => [@mixin_methods] }
 };
 
 # needed for housekeeping of already mixed in modules
@@ -191,11 +197,15 @@ sub _make_package {
   $session->init_mixins();
   $session->init_mixins(1);
 
-This method redispatches to every I<< _init() >> methods in the loaded mixin modules. The raw SNMP values for the mixins are loaded during this call - or via callbacks during the snmp_dispatcher event loop for nonblocking sessions - and stored in the object space. The mixed methods deliver afterwards cooked meal from these values.
+This method redispatches to every I<< _init() >> method in the loaded mixin modules. The raw SNMP values for the mixins are loaded during this call - or via callbacks during the snmp_dispatcher event loop for nonblocking sessions - and stored in the object space. The mixed methods deliver afterwards cooked meal from these values.
 
 The MIB values are reloaded for the mixins if the argument $reload is true. It's an error calling this method twice without forcing $reload.
 
-Returns nothing, dies on error.
+This method should be called in void context. In order to check successfull initialization the Net::SNMP error method I<< $session->error() >> should be checked. Please use the following idiom:
+
+  $session->init_mixins;
+  snmp_dispatcher if $Net::SNMP::NONBLOCKING;
+  die $session->error if $session->error;
 
 =cut
 
@@ -205,11 +215,17 @@ sub init_mixins {
   Carp::croak "pure instance method called as class method,"
     unless ref $session;
 
-  my @class_mixins    = keys %register_class_mixins;
-  my @instance_mixins = keys %{ $session->{$prefix}{mixins} };
+  my @class_mixins    = _get_class_mixins();
+  my @instance_mixins = _get_instance_mixins($session);
+  my @all_mixins      = (@class_mixins, @instance_mixins);
+
+  unless ( scalar @all_mixins ) {
+    Carp::carp "please use first the mixer() method, nothing to init\n";
+    return;
+  }
 
   # for each mixin module ...
-  foreach my $mixin ( @class_mixins, @instance_mixins ) {
+  foreach my $mixin (@all_mixins) {
 
     # call the _init() method in module $mixin
     eval "\$session->${mixin}::_init(\$reload)";
@@ -217,7 +233,30 @@ sub init_mixins {
   }
 }
 
+#
+# _get_class_mixins()
+# Returns a list of already mixed-in modules into the Net::SNMP class.
+#
+sub _get_class_mixins {
+    return keys %register_class_mixins;
+}
+
+#
+# $session->_get_instance_mixins() >>
+# Returns a list of already mixed-in modules into the namespace of $session.
+#
+sub _get_instance_mixins {
+  my $session = shift;
+
+  return keys %{ $session->{$prefix}{mixins} }
+    if defined $session->{$prefix}{mixins};
+
+  return;
+}
+
 =head1 GUIDELINES FOR MIXIN AUTHORS
+
+See the L<< Net::SNMP::Mixin::System >> module as a blueprint for a simple mixin module.
 
 As a mixin-module author you must respect the following design guidelines:
 
@@ -229,7 +268,7 @@ Write more separate mixin-modules instead of 'one module fits all'.
 
 =item *
 
-Don't build interdependancies to other mixin-modules.
+Don't build mutual dependencies with other mixin-modules.
 
 =item *
 
@@ -237,15 +276,21 @@ In no circumstance change the given attributes of the calling Net::SNMP session 
 
 =item *
 
-Use Sub::Exporter and export the mixin methods by default.
+Don't assume the translation of the SNMP values by default. Due to the asynchronous nature of the SNMP calls, you can't rely on the output of $session->translate. If you need a special representation of a value, you have to check the values itself and perhaps translate or untranslate it when needed. See the source of Net::SNMP::Mixin::Dot1qVlan for an example.
 
 =item *
 
 Implement the I<< _init() >> method and fetch SNMP values only during this call. If the session instance is nonblocking use a callback to work properly with the I<< snmp_dispatcher() >> event loop. In no circumstance load additonal SNMP values outside the  I<< _init() >> method.
 
-=back
+=item *
 
-See the L<< Net::SNMP::Mixin::System >> module as a blueprint for a simple mixin module.
+Don't die() on SNMP errors during I<< _init() >>, just return premature with no value. The caller is responsible to check the I<< $session->error() >> method.
+
+=item *
+
+Use Sub::Exporter and export the mixin methods by default.
+
+=back
 
 =head1 DEVELOPER INFORMATION
 

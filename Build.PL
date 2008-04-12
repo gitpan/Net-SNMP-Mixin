@@ -37,11 +37,15 @@ if (
 
   my $community = $builder->prompt('Enter read-only community [public]:');
   $builder->notes( snmp_community => $community || 'public' );
+
+  my $version = $builder->prompt('Enter snmp version [2c]:');
+  $builder->notes( snmp_version => $version || '2c' );
 }
 else {
   print "Skipping live tests.\n";
   $builder->notes( snmp_agent     => '' );
   $builder->notes( snmp_community => '' );
+  $builder->notes( snmp_version => '' );
 }
 
 # -----------------------------------------------------------------------

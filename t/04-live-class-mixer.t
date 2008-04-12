@@ -26,7 +26,7 @@ SKIP: {
   my ( $session, $error ) = Net::SNMP->session(
     hostname  => $snmp_agent,
     community => $snmp_community || 'public',
-    version   => '2c' || $snmp_version
+    version   => $snmp_version || '2c',
   );
 
   ok( !$error, 'got snmp session for live tests' );

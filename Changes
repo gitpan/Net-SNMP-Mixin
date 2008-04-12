@@ -1,5 +1,12 @@
 Revision history for Net-SNMP-Mixin
 
+0.05    Sat Apr 12 22:52:21 CEST 2008
+	no interface change
+	refined pod
+	better error handling
+	more tests
+	more kwalitee
+
 0.04    Fri Apr 11 19:44:14 CEST 2008
 	added build_requires in Build.PL
 	no interface change

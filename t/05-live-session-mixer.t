@@ -9,6 +9,7 @@ eval "use Net::SNMP";
 plan skip_all => "Net::SNMP required for testing Net::SNMP::Mixin" if $@;
 
 plan tests => 29;
+
 #plan 'no_plan';
 
 use_ok('Net::SNMP::Mixin');
@@ -24,7 +25,7 @@ SKIP: {
   my ( $session, $error ) = Net::SNMP->session(
     hostname  => $snmp_agent,
     community => $snmp_community || 'public',
-    version   => '2c' || $snmp_version
+    version   => $snmp_version || '2c',
   );
 
   ok( !$error, 'got snmp session for live tests' );
@@ -63,7 +64,7 @@ SKIP: {
   ( $session, $error ) = Net::SNMP->session(
     hostname    => $snmp_agent,
     community   => $snmp_community || 'public',
-    version     => '2c' || $snmp_version,
+    version     => $snmp_version || '2c',
     nonblocking => 1,
   );
 
@@ -90,7 +91,7 @@ SKIP: {
   ( $session, $error ) = Net::SNMP->session(
     hostname  => $snmp_agent,
     community => '_foo_bar_bazz_yazz_%_',
-    version   => '2c' || $snmp_version,
+    version   => $snmp_version || '2c',
     timeout   => 1,
     retries   => 0,
   );
@@ -117,7 +118,7 @@ SKIP: {
   ( $session, $error ) = Net::SNMP->session(
     hostname    => $snmp_agent,
     community   => '_foo_bar_bazz_yazz_%_',
-    version     => '2c' || $snmp_version,
+    version     => $snmp_version || '2c',
     timeout     => 1,
     retries     => 0,
     nonblocking => 1,
