@@ -1,5 +1,8 @@
 Revision history for Net-SNMP-Mixin
 
+0.06    Sun Apr 13 16:15:56 CEST 2008
+	fixed check for Test::Warn missing
+
 0.05    Sat Apr 12 22:52:21 CEST 2008
 	no interface change
 	refined pod

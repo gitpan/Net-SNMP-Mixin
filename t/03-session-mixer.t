@@ -5,9 +5,10 @@ use warnings;
 use Test::More;
 
 my $test_warn_missing;
+
 BEGIN {
   eval "use Test::Warn";
-  $test_warn_missing if $@;
+  $test_warn_missing++ if $@;
 }
 
 eval "use Net::SNMP";
