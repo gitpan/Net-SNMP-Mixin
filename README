@@ -2,7 +2,7 @@ NAME
     Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 VERSION
-    Version 0.06
+    Version 0.07
 
 ABSTRACT
     Thin framework to access cooked SNMP information from SNMP agents with
@@ -145,31 +145,21 @@ SEE ALSO
 REQUIREMENTS
     Net::SNMP, Sub::Exporter, Package::Generator, Package::Reaper
 
-BUGS
-    Please report any bugs or feature requests to "bug-net-snmp-mixin at
-    rt.cpan.org", or through the web interface at
-    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-SNMP-Mixin>. I will
-    be notified, and then you'll automatically be notified of progress on
-    your bug as I make changes.
+BUGS, PATCHES & FIXES
+    There are no known bugs at the time of this release. However, if you
+    spot a bug or are experiencing difficulties that are not explained
+    within the POD documentation, please submit a bug to the RT system (see
+    link below). However, it would help greatly if you are able to pinpoint
+    problems or even supply a patch.
 
-SUPPORT
-    You can find documentation for this module with the perldoc command.
+    Fixes are dependant upon their severity and my availablity. Should a fix
+    not be forthcoming, please feel free to (politely) remind me by sending
+    an email to gaissmai@cpan.org .
 
-        perldoc Net::SNMP::Mixin
+      RT: http://rt.cpan.org/Public/Dist/Display.html?Name=Net-SNMP-Mixin
 
-    You can also look for information at:
-
-    * AnnoCPAN: Annotated CPAN documentation
-        <http://annocpan.org/dist/Net-SNMP-Mixin>
-
-    * CPAN Ratings
-        <http://cpanratings.perl.org/d/Net-SNMP-Mixin>
-
-    * RT: CPAN's request tracker
-        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-SNMP-Mixin>
-
-    * Search CPAN
-        <http://search.cpan.org/dist/Net-SNMP-Mixin>
+AUTHOR
+    Karl Gaissmaier <karl.gaissmaier at uni-ulm.de>
 
 COPYRIGHT & LICENSE
     Copyright 2008 Karl Gaissmaier, all rights reserved.

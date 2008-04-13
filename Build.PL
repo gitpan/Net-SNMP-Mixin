@@ -16,9 +16,12 @@ my $builder = Module::Build->new(
     'Package::Reaper'    => '0.102',
     'Scalar::Util'       => '1.18',
   },
-  build_requires     => { 'Module::Build' => '0', },
+  build_requires => {
+    'Module::Build' => '0',
+    'Test::More'    => '0',
+  },
   create_makefile_pl => 'passthrough',
-  add_to_cleanup => [qw/Net-SNMP-Mixin-* Makefile* META.yml README/],
+  add_to_cleanup     => [qw/Net-SNMP-Mixin-* Makefile* META.yml README/],
 );
 
 # -----------------------------------------------------------------------
@@ -45,7 +48,7 @@ else {
   print "Skipping live tests.\n";
   $builder->notes( snmp_agent     => '' );
   $builder->notes( snmp_community => '' );
-  $builder->notes( snmp_version => '' );
+  $builder->notes( snmp_version   => '' );
 }
 
 # -----------------------------------------------------------------------

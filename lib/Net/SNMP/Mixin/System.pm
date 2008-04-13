@@ -49,11 +49,11 @@ Net::SNMP::Mixin::System - mixin class for the mib-2 system-group values
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 SYNOPSIS
 
@@ -202,42 +202,17 @@ unless ( caller() ) {
   print "$prefix compiles and initializes successful.\n";
 }
 
-=head1 BUGS
+=head1 BUGS, PATCHES & FIXES
 
-Please report any bugs or feature requests to
-C<bug-net-snmp-mixin-system at rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-SNMP-Mixin>.
-I will be notified, and then you'll automatically be notified of progress on
-your bug as I make changes.
+There are no known bugs at the time of this release. However, if you spot a bug or are experiencing difficulties that are not explained within the POD documentation, please submit a bug to the RT system (see link below). However, it would help greatly if you are able to pinpoint problems or even supply a patch. 
 
-=head1 SUPPORT
+Fixes are dependant upon their severity and my availablity. Should a fix not be forthcoming, please feel free to (politely) remind me by sending an email to gaissmai@cpan.org .
 
-You can find documentation for this module with the perldoc command.
+  RT: http://rt.cpan.org/Public/Dist/Display.html?Name=Net-SNMP-Mixin
 
-    perldoc Net::SNMP::Mixin::System
+=head1 AUTHOR
 
-You can also look for information at:
-
-=over 4
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Net-SNMP-Mixin>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Net-SNMP-Mixin>
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-SNMP-Mixin>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Net-SNMP-Mixin>
-
-=back
-
+Karl Gaissmaier <karl.gaissmaier at uni-ulm.de>
 =head1 COPYRIGHT & LICENSE
 
 Copyright 2008 Karl Gaissmaier, all rights reserved.
