@@ -49,11 +49,11 @@ Net::SNMP::Mixin::System - mixin class for the mib-2 system-group values
 
 =head1 VERSION
 
-Version 0.08
+Version 0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 SYNOPSIS
 
@@ -100,17 +100,8 @@ sub get_system_group {
   Carp::croak "'$prefix' not initialized,"
     unless $session->{$prefix}{__initialized};
 
-  my $result = {};
-
-  $result->{sysDescr}        = $session->{$prefix}{sysDescr};
-  $result->{sysObjectID}     = $session->{$prefix}{sysObjectID};
-  $result->{sysUpTime}       = $session->{$prefix}{sysUpTime};
-  $result->{sysContact}      = $session->{$prefix}{sysContact};
-  $result->{sysName}         = $session->{$prefix}{sysName};
-  $result->{sysLocation}     = $session->{$prefix}{sysLocation};
-  $result->{sysServices}     = $session->{$prefix}{sysServices};
-
-  return $result;
+  # just a shallow copy for shallow values
+  return { %{ $session->{$prefix}{sysGroup} } };
 }
 
 =head1 INITIALIZATION
@@ -187,13 +178,13 @@ sub _system_group_cb {
 
   return unless defined $vbl;
 
-  $session->{$prefix}{sysDescr}        = $vbl->{ SYS_DESCR() };
-  $session->{$prefix}{sysObjectID}     = $vbl->{ SYS_OBJECT_ID() };
-  $session->{$prefix}{sysUpTime}       = $vbl->{ SYS_UP_TIME() };
-  $session->{$prefix}{sysContact}      = $vbl->{ SYS_CONTACT() };
-  $session->{$prefix}{sysName}         = $vbl->{ SYS_NAME() };
-  $session->{$prefix}{sysLocation}     = $vbl->{ SYS_LOCATION() };
-  $session->{$prefix}{sysServices}     = $vbl->{ SYS_SERVICES() };
+  $session->{$prefix}{sysGroup}{sysDescr}    = $vbl->{ SYS_DESCR() };
+  $session->{$prefix}{sysGroup}{sysObjectID} = $vbl->{ SYS_OBJECT_ID() };
+  $session->{$prefix}{sysGroup}{sysUpTime}   = $vbl->{ SYS_UP_TIME() };
+  $session->{$prefix}{sysGroup}{sysContact}  = $vbl->{ SYS_CONTACT() };
+  $session->{$prefix}{sysGroup}{sysName}     = $vbl->{ SYS_NAME() };
+  $session->{$prefix}{sysGroup}{sysLocation} = $vbl->{ SYS_LOCATION() };
+  $session->{$prefix}{sysGroup}{sysServices} = $vbl->{ SYS_SERVICES() };
 
   $session->{$prefix}{__initialized}++;
 }

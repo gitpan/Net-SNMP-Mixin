@@ -7,7 +7,6 @@ my $builder = Module::Build->new(
   create_readme     => 1,
   license           => 'perl',
   dist_author       => 'Karl Gaissmaier <karl.gaissmaier (at) uni-ulm.de>',
-  dist_version_from => 'lib/Net/SNMP/Mixin.pm',
   requires          => {
     'perl'               => '5.6.0',
     'Net::SNMP'          => '0',
@@ -21,7 +20,7 @@ my $builder = Module::Build->new(
     'Test::More'    => '0',
   },
   create_makefile_pl => 'passthrough',
-  add_to_cleanup     => [qw/Net-SNMP-Mixin-* Makefile* META.yml README/],
+  add_to_cleanup => [qw/Net-SNMP-Mixin-* Makefile* META.yml README/],
 );
 
 # -----------------------------------------------------------------------

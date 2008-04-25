@@ -1,5 +1,9 @@
 Revision history for Net-SNMP-Mixin
 
+0.09	Fr 25. Apr 19:05:18 CEST 2008
+	better return values in System.pm
+	removed Bundle::Net::SNMP::Mixin
+
 0.08	Fr 25. Apr 15:04:27 CEST 2008
 	production ready
 

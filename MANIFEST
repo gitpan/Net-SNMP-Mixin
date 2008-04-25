@@ -2,7 +2,6 @@ Artistic
 Build.PL
 Changes
 examples/system.pl
-lib/Bundle/Net/SNMP/Mixin.pm
 lib/Net/SNMP/Mixin.pm
 lib/Net/SNMP/Mixin/System.pm
 lib/Net/SNMP/Mixin/Util.pm
