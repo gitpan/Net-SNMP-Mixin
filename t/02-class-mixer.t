@@ -6,7 +6,7 @@ use Test::More;
 
 eval "use Net::SNMP";
 plan skip_all => "Net::SNMP required for testing Net::SNMP::Mixin" if $@;
-plan tests => 18;
+plan tests => 16;
 
 # explicit emtpy import list
 eval "use Net::SNMP::Mixin ()";
@@ -46,14 +46,5 @@ ok( $session->can('get_system_group'), '$session can get_system_group' );
 
 eval {$session->get_system_group};
 like( $@, qr/not initialized/i, 'not initialized' );
-
-is_deeply(
-  [ Net::SNMP::Mixin->_get_class_mixins ],
-  ['Net::SNMP::Mixin::System'],
-  '_get_class_mixins'
-);
-
-is_deeply( [ $session->Net::SNMP::Mixin::_get_instance_mixins ],
-  [], '_get_instance_mixins' );
 
 # vim: ft=perl sw=2

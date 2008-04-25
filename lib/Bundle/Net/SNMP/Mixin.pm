@@ -10,6 +10,10 @@ __END__
 
 Bundle::Net::SNMP::Mixin - A bundle for Net::SNMP::Mixin
 
+=head1 VERSION
+
+Version 0.08
+
 =head1 SYNOPSIS
 
     perl -MCPAN -e 'install Bundle::Net::SNMP::Mixin'

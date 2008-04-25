@@ -10,11 +10,11 @@ Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 =head1 VERSION
 
-Version 0.07_01
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07_01';
+our $VERSION = '0.08';
 
 =head1 ABSTRACT
 
@@ -54,7 +54,7 @@ use Sub::Exporter -setup => {
 
 # needed for housekeeping of already mixed in modules
 # in order to find double mixins
-our %register_class_mixins;
+my %register_class_mixins;
 
 =head1 SYNOPSIS
 
@@ -150,6 +150,7 @@ sub _class_mixer {
 
   eval "use $mixin {into => 'Net::SNMP'}";
   Carp::croak $@ if $@;
+  return;
 }
 
 #
@@ -170,6 +171,7 @@ sub _obj_mixer {
 
   eval "use $mixin {into => '$package'}";
   Carp::croak $@ if $@;
+  return;
 }
 
 #
@@ -222,9 +224,10 @@ sub init_mixins {
   Carp::croak "pure instance method called as class method,"
     unless ref $session;
 
-  my @class_mixins    = _get_class_mixins();
-  my @instance_mixins = _get_instance_mixins($session);
-  my @all_mixins      = (@class_mixins, @instance_mixins);
+  my @class_mixins    = keys %register_class_mixins;
+  my @instance_mixins = keys %{ $session->{$prefix}{mixins} };
+
+  my @all_mixins = ( @class_mixins, @instance_mixins );
 
   unless ( scalar @all_mixins ) {
     Carp::carp "please use first the mixer() method, nothing to init\n";
@@ -235,29 +238,11 @@ sub init_mixins {
   foreach my $mixin (@all_mixins) {
 
     # call the _init() method in module $mixin
-    eval "\$session->${mixin}::_init(\$reload)";
+    my $mixin_init = $mixin . '::_init';
+    eval { $session->$mixin_init($reload) };
+
     Carp::croak $@ if $@;
   }
-}
-
-#
-# _get_class_mixins()
-# Returns a list of already mixed-in modules into the Net::SNMP class.
-#
-sub _get_class_mixins {
-    return keys %register_class_mixins;
-}
-
-#
-# _get_instance_mixins($session) >>
-# Returns a list of already mixed-in modules into the namespace of $session.
-#
-sub _get_instance_mixins {
-  my $session = shift;
-
-  return keys %{ $session->{$prefix}{mixins} }
-    if defined $session->{$prefix}{mixins};
-
   return;
 }
 

@@ -20,11 +20,11 @@ Net::SNMP::Mixin::Util - helper class for Net::SNMP mixins
 
 =head1 VERSION
 
-Version 0.07_01
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07_01';
+our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 

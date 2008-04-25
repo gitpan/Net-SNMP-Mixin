@@ -49,11 +49,11 @@ Net::SNMP::Mixin::System - mixin class for the mib-2 system-group values
 
 =head1 VERSION
 
-Version 0.07_01
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07_01';
+our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 
