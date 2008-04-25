@@ -10,11 +10,11 @@ Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 =head1 VERSION
 
-Version 0.07
+Version 0.07_01
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.07_01';
 
 =head1 ABSTRACT
 
@@ -142,6 +142,9 @@ sub mixer {
   return $self;
 }
 
+#
+# Mix the module into Net::SNMP with the help of Sub::Exporter.
+#
 sub _class_mixer {
   my ( $class, $mixin ) = @_;
 
@@ -149,6 +152,11 @@ sub _class_mixer {
   Carp::croak $@ if $@;
 }
 
+#
+# Create a new package as a subclass of Net::SNMP
+# Rebless $session in the new package.
+# Mix the module into the new package with the help of Sub::Exporter.
+#
 sub _obj_mixer {
   my ( $session, $mixin )      = @_;
   my ( $package, $pkg_reaper ) = _make_package($session);
@@ -165,10 +173,9 @@ sub _obj_mixer {
 }
 
 #
-# make unique mixin subclass for this session with name
-# Net::SNMP::<refaddr $session> und make it a subclass
-# of Net::SNMP. Mix all mixin modules into this only package
-# for this session.
+# Make unique mixin subclass for this session with name.
+# Net::SNMP::<refaddr $session> und make it a subclass of Net::SNMP.
+# Arm a package reaper, see perldoc Package::Reaper.
 #
 sub _make_package {
   my $session  = shift;
@@ -242,7 +249,7 @@ sub _get_class_mixins {
 }
 
 #
-# $session->_get_instance_mixins() >>
+# _get_instance_mixins($session) >>
 # Returns a list of already mixed-in modules into the namespace of $session.
 #
 sub _get_instance_mixins {
@@ -276,7 +283,7 @@ In no circumstance change the given attributes of the calling Net::SNMP session 
 
 =item *
 
-Don't assume the translation of the SNMP values by default. Due to the asynchronous nature of the SNMP calls, you can't rely on the output of $session->translate. If you need a special representation of a value, you have to check the values itself and perhaps translate or untranslate it when needed. See the source of Net::SNMP::Mixin::Dot1qVlan for an example.
+Don't assume the translation of the SNMP values by default. Due to the asynchronous nature of the SNMP calls, you can't rely on the output of $session->translate. If you need a special representation of a value, you have to check the values itself and perhaps translate or untranslate it when needed. See the source of Net::SNMP::Mixin::Dot1qVlanStatic for an example.
 
 =item *
 

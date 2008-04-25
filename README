@@ -2,7 +2,7 @@ NAME
     Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 VERSION
-    Version 0.07
+    Version 0.07_01
 
 ABSTRACT
     Thin framework to access cooked SNMP information from SNMP agents with
@@ -113,7 +113,7 @@ GUIDELINES FOR MIXIN AUTHORS
         output of $session->translate. If you need a special representation
         of a value, you have to check the values itself and perhaps
         translate or untranslate it when needed. See the source of
-        Net::SNMP::Mixin::Dot1qVlan for an example.
+        Net::SNMP::Mixin::Dot1qVlanStatic for an example.
 
     *   Implement the *_init()* method and fetch SNMP values only during
         this call. If the session instance is nonblocking use a callback to

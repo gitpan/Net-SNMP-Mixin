@@ -19,7 +19,7 @@ plan tests => 8;
 
 use_ok('Net::SNMP::Mixin');
 
-my ( $session, $error1 ) = Net::SNMP->session( hostname => '0.0.0.0', );
+my ( $session, $error1 ) = Net::SNMP->session( hostname => '127.0.0.1', );
 
 ok( !$error1, 'no snmp session' );
 isa_ok( $session, 'Net::SNMP' );

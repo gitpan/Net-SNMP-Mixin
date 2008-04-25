@@ -33,7 +33,7 @@ like( $@, qr/already mixed into/, 'mixed in twice is an error' );
 eval {Net::SNMP->mixer('Net::SNMP::Mixin::mixin_does_not_exist')};
 like( $@, qr/Can't locate/i, 'try to mixin a non existent module' );
 
-my ( $session, $error ) = Net::SNMP->session( hostname => '0.0.0.0', );
+my ( $session, $error ) = Net::SNMP->session( hostname => '127.0.0.1', );
 
 ok( !$error, 'no snmp session' );
 isa_ok( $session, 'Net::SNMP' );
