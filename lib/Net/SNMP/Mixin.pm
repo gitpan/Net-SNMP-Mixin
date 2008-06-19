@@ -10,11 +10,11 @@ Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 =head1 VERSION
 
-Version 0.09
+Version 0.10
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =head1 ABSTRACT
 
@@ -43,7 +43,7 @@ use Package::Reaper;
 my @mixin_methods;
 
 BEGIN {
-  @mixin_methods = ( qw/ mixer init_mixins /);
+  @mixin_methods = (qw/ mixer init_mixins /);
 }
 
 use Sub::Exporter -setup => {
@@ -54,7 +54,7 @@ use Sub::Exporter -setup => {
 
 # needed for housekeeping of already mixed in modules
 # in order to find double mixins
-my %register_class_mixins;
+my @class_mixins;
 
 =head1 SYNOPSIS
 
@@ -116,26 +116,28 @@ sub mixer {
 
     # check: already mixed-in as class-mixin?
     Carp::croak "$mixin already mixed into class,"
-      if defined $register_class_mixins{$mixin};
+      if grep m/^$mixin$/, @class_mixins;
 
     # instance- or class-mixin?
     if ( ref $self ) {
 
+      # register array for instance mixins
+      $self->{$prefix}{mixins} ||= [];
+
       # check: already mixed-in as instance-mixin?
       Carp::croak "$mixin already mixed into instance $self,"
-        if defined $self->{$prefix}{mixins}{$mixin};
+        if grep m/^$mixin$/, @{ $self->{$prefix}{mixins} };
 
       _obj_mixer( $self, $mixin );
 
       # register instance mixins in the object itself
-      $self->{$prefix}{mixins}{$mixin}++;
+      push @{ $self->{$prefix}{mixins} }, $mixin;
     }
     else {
       _class_mixer( $self, $mixin );
 
       # register class mixins in a package variable
-      $register_class_mixins{$mixin}++;
-
+      push @class_mixins, $mixin;
     }
   }
 
@@ -162,12 +164,18 @@ sub _obj_mixer {
   my ( $session, $mixin )      = @_;
   my ( $package, $pkg_reaper ) = _make_package($session);
 
-  # rebless $session to new subclass of Net::SNMP
-  bless $session, $package;
+  # created a new PACKAGE with an armed reaper,
+  # this is the first call to mixer for this $session
+  if ($pkg_reaper) {
 
-  # When this instance is garbage collected, the $pkg_reaper
-  # is DESTROYed and the package is deleted from the symbol table.
-  $session->{$prefix}{reaper} = $pkg_reaper if $pkg_reaper;
+    # rebless $session to new PACKAGE, this is still a
+    # subclass of Net::SNMP
+    bless $session, $package;
+
+    # When this instance is garbage collected, the $pkg_reaper
+    # is DESTROYed and the PACKAGE is deleted from the symbol table.
+    $session->{$prefix}{reaper} = $pkg_reaper;
+  }
 
   eval "use $mixin {into => '$package'}";
   Carp::croak $@ if $@;
@@ -187,7 +195,7 @@ sub _make_package {
   # just return the package name
   return $pkg_name if Package::Generator->package_exists($pkg_name);
 
-  # build this package, make it a subclass of Net::SNMP and
+  # build this package, make it a subclass of Net::SNMP and ...
   my $package = Package::Generator->new_package(
     {
       make_unique => sub { return $pkg_name },
@@ -195,7 +203,7 @@ sub _make_package {
     }
   );
 
-  # arm a package reaper
+  # ... arm a package reaper
   my $pkg_reaper = Package::Reaper->new($package);
 
   return ( $package, $pkg_reaper );
@@ -209,6 +217,8 @@ sub _make_package {
 This method redispatches to every I<< _init() >> method in the loaded mixin modules. The raw SNMP values for the mixins are loaded during this call - or via callbacks during the snmp_dispatcher event loop for nonblocking sessions - and stored in the object space. The mixed methods deliver afterwards cooked meal from these values.
 
 The MIB values are reloaded for the mixins if the argument $reload is true. It's an error calling this method twice without forcing $reload.
+
+If there is an error in a mixin, the rest of the initialization is skipped to preserve the current error message. 
 
 This method should be called in void context. In order to check successfull initialization the Net::SNMP error method I<< $session->error() >> should be checked. Please use the following idiom:
 
@@ -224,9 +234,10 @@ sub init_mixins {
   Carp::croak "pure instance method called as class method,"
     unless ref $session;
 
-  my @class_mixins    = keys %register_class_mixins;
-  my @instance_mixins = keys %{ $session->{$prefix}{mixins} };
+  my @instance_mixins = @{ $session->{$prefix}{mixins} }
+    if defined $session->{$prefix}{mixins};
 
+  # loop over all class-mixins and instance-mixins
   my @all_mixins = ( @class_mixins, @instance_mixins );
 
   unless ( scalar @all_mixins ) {
@@ -239,9 +250,13 @@ sub init_mixins {
 
     # call the _init() method in module $mixin
     my $mixin_init = $mixin . '::_init';
-    eval { $session->$mixin_init($reload) };
+    my $result = eval { $session->$mixin_init($reload) };
 
     Carp::croak $@ if $@;
+
+    # last mixin not successful initialized, skip the rest in order
+    # not to overwrite the last Net::SNMP error message.
+    last unless $result;
   }
   return;
 }

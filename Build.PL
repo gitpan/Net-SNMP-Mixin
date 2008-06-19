@@ -17,6 +17,7 @@ my $builder = Module::Build->new(
   },
   build_requires => {
     'Module::Build' => '0',
+    'Net::SNMP'     => '0',
     'Test::More'    => '0',
   },
   create_makefile_pl => 'passthrough',

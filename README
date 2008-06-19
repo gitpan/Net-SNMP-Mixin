@@ -2,7 +2,7 @@ NAME
     Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 VERSION
-    Version 0.09
+    Version 0.10
 
 ABSTRACT
     Thin framework to access cooked SNMP information from SNMP agents with
@@ -83,6 +83,9 @@ DEFAULT EXPORTS
 
     The MIB values are reloaded for the mixins if the argument $reload is
     true. It's an error calling this method twice without forcing $reload.
+
+    If there is an error in a mixin, the rest of the initialization is
+    skipped to preserve the current error message.
 
     This method should be called in void context. In order to check
     successfull initialization the Net::SNMP error method
