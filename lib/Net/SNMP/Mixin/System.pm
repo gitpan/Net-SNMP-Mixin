@@ -14,9 +14,7 @@ my $prefix = __PACKAGE__;
 #
 use Carp ();
 
-# normally needed utils, but not for this simple blueprint mixin.
-# Please see the other mixins in Net::SNMP::Mixin::...
-#use Net::SNMP::Mixin::Util qw/idx2val/;
+use Net::SNMP::Mixin::Util qw/ push_error /;
 
 # this module export config
 #
@@ -49,11 +47,11 @@ Net::SNMP::Mixin::System - mixin class for the mib-2 system-group values
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
@@ -110,7 +108,7 @@ sub get_system_group {
 
 =head2 B<< OBJ->_init($reload) >>
 
-Fetch the SNMP mib-II system-group values from the host. Don't call this method direct!
+Fetch the SNMP mib-II system-group values from the host. Don't call this method direct! Returns nothing in case of failure so init_mixins can stop initialization.
 
 =cut
 
@@ -121,10 +119,8 @@ sub _init {
   	if $session->{$prefix}{__initialized} && not $reload;
 
   # initialize the object system-group infos
-  _fetch_system_group($session);
-  return if $session->error;
-
-  return 1;
+  my $success = _fetch_system_group($session);
+  $success ? return 1 : return;
 }
 
 =head1 PRIVATE METHODS
@@ -133,7 +129,7 @@ Only for developers or maintainers.
 
 =head2 B<< _fetch_system_group($session) >>
 
-Fetch values from the system-group once during object initialization.
+Fetch values from the system-group once during object initialization. Push error message onto the error buffer in case of failure and returns nothing.
 
 =cut
 
@@ -158,17 +154,25 @@ sub _fetch_system_group {
     $session->nonblocking ? ( -callback => \&_system_group_cb ) : (),
   );
 
-  return unless defined $result;
+  unless (defined $result) {
+    if (my $err_msg = $session->error) {
+      push_error($session, "$prefix: $err_msg");
+    };
+    return;
+  }
+
+  # in nonblocking mode the callback will be called asynchronously
   return 1 if $session->nonblocking;
 
-  # call the callback function in blocking mode by hand
+  # ok we are in synchronous mode, call the result mangling function
+  # by hand
   _system_group_cb($session);
 
 }
 
 =head2 B<< _system_group_cb($session) >>
 
-The callback for _fetch_system_group.
+The callback for _fetch_system_group. Push error message onto the error buffer in case of failure and returns nothing.
 
 =cut
 
@@ -176,7 +180,16 @@ sub _system_group_cb {
   my $session = shift;
   my $vbl     = $session->var_bind_list;
 
-  return unless defined $vbl;
+  unless (defined $vbl) {
+    if (my $err_msg = $session->error) {
+
+      # Net::SNMP looses sometimes error messages in nonblocking
+      # mode, so we save them in an extra buffer
+      push_error($session, "$prefix: $err_msg");
+    };
+    return;
+  }
+
 
   $session->{$prefix}{sysGroup}{sysDescr}    = $vbl->{ SYS_DESCR() };
   $session->{$prefix}{sysGroup}{sysObjectID} = $vbl->{ SYS_OBJECT_ID() };
@@ -187,6 +200,8 @@ sub _system_group_cb {
   $session->{$prefix}{sysGroup}{sysServices} = $vbl->{ SYS_SERVICES() };
 
   $session->{$prefix}{__initialized}++;
+
+  return 1;
 }
 
 unless ( caller() ) {

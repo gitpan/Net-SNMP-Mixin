@@ -2,7 +2,7 @@ NAME
     Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 VERSION
-    Version 0.10
+    Version 0.11
 
 ABSTRACT
     Thin framework to access cooked SNMP information from SNMP agents with
@@ -10,7 +10,7 @@ ABSTRACT
 
 SYNOPSIS
       use Net::SNMP;
-      use Net::SNMP::Mixin qw(mixer init_mixins);
+      use Net::SNMP::Mixin;
 
       my $session = Net::SNMP->session( -hostname => 'example.com' );
   
@@ -18,9 +18,11 @@ SYNOPSIS
       $session->mixer(qw/Net::SNMP::Mixin::Foo Net::SNMP::Mixin::Bar/);
       $session->init_mixins();
   
-      # event_loop for nonblocking sessions
-      snmp_dispatcher() if $Net::SNMP::NONBLOCKING;
-      die $session->error if $session->error;
+      # event_loop in case of nonblocking sessions
+      snmp_dispatcher();
+
+      # check for initialization errors
+      die $session->errors(1) if $session->errors;
 
       # use mixed-in methods to retrieve cooked SNMP info
       my $a = $session->get_foo_a();
@@ -44,8 +46,15 @@ DESCRIPTION
     unique mixin module names as the hash key.
 
 DEFAULT EXPORTS
-    The following helper methods are exported by default into the Net::SNMP
-    namespace.
+    These methods are exported by default into the Net::SNMP namespace:
+
+    *   mixer
+
+    *   init_mixins
+
+    *   errors
+
+    Please see the following description for details.
 
   mixer(@module_names)
       # class method
@@ -92,8 +101,23 @@ DEFAULT EXPORTS
     *$session->error()* should be checked. Please use the following idiom:
 
       $session->init_mixins;
-      snmp_dispatcher if $Net::SNMP::NONBLOCKING;
-      die $session->error if $session->error;
+      snmp_dispatcher;
+      die $session->errors(1) if $session->errors;
+
+  errors($clear)
+      @errors = $session->errors();
+      @errors = $session->errors(1);
+
+    Net::SNMP::error() has only one slot for errors. During nonblocking
+    calls it's possible that an error followed by a successful transaction
+    is cleared before the user gets the chance to see the error. For the
+    mixin modules we use an error buffer until they are explicit cleared.
+
+    This method returns the list of all errors pushed by any mixin module.
+    Called in scalar context returns a string of all @errors joined with
+    "\n".
+
+    The error buffer is cleared if the argument $clear is true.
 
 GUIDELINES FOR MIXIN AUTHORS
     See the Net::SNMP::Mixin::System module as a blueprint for a simple

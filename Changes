@@ -1,5 +1,13 @@
 Revision history for Net-SNMP-Mixin
 
+0.11	Sun Jun 22 10:55:37 MEST 2008
+	addet errors() method to record all errors
+	Net::SNMP::error has only one slot, that's not helpful
+	for nonblocking sessions
+
+	removed fast exit in init_mixins, now handled better
+	with the errors() method
+
 0.10	Do 19. Jun 12:54:47 CEST 2008
 	fast exit in init_mixins if one mixin intialization
 	goes wrong in order not to clobber the Net::SNMP

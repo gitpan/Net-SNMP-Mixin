@@ -6,18 +6,20 @@ use Test::More;
 
 eval "use Net::SNMP";
 plan skip_all => "Net::SNMP required for testing Net::SNMP::Mixin" if $@;
-plan tests => 16;
+plan tests => 18;
 
 # explicit emtpy import list
 eval "use Net::SNMP::Mixin ()";
 ok('use Net::SNMP::Mixin ()') unless $@;
 ok( !Net::SNMP->can('mixer'),       'mixer not imported' );
 ok( !Net::SNMP->can('init_mixins'), 'init_mixins not imported' );
+ok( !Net::SNMP->can('errors'), 'errors not imported' );
 
 use_ok('Net::SNMP::Mixin');
 ok( Net::SNMP->can('mixer'), 'mixer exported by default into Net::SNMP' );
 ok( Net::SNMP->can('init_mixins'),
   'init_mixins exported by default into Net::SNMP' );
+ok( Net::SNMP->can('errors'), 'errors exported by default into Net::SNMP' );
 
 is( Net::SNMP->mixer(), 'Net::SNMP', 'mixer returns the class name' );
 is( Net::SNMP->mixer('Net::SNMP::Mixin::System'),

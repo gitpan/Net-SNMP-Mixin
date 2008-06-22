@@ -4,18 +4,23 @@ use strict;
 use warnings;
 use Test::More;
 
-plan tests => 41;
+plan tests => 50;
 
 use_ok('Net::SNMP');
+
 use_ok('Net::SNMP::Mixin::Util');
 ok( !main->can('normalize_mac'), 'normalize_mac not exported by default' );
 ok( !main->can('hex2octet'),     'hex2octet not exported by default' );
 ok( !main->can('idx2val'),       'idx2val not exported by default' );
+ok( !main->can('push_error'),    'push_error not exported by default' );
 
-use_ok( 'Net::SNMP::Mixin::Util', qw/normalize_mac hex2octet idx2val/ );
+use_ok( 'Net::SNMP::Mixin::Util',
+  qw/normalize_mac hex2octet idx2val push_error/ );
+
 ok( main->can('normalize_mac'), 'normalize_mac imported' );
 ok( main->can('hex2octet'),     'hex2octet imported' );
 ok( main->can('idx2val'),       'idx2val imported' );
+ok( main->can('push_error'),    'push_error imported' );
 
 # ----------------------------------
 # test mac normalization
@@ -92,8 +97,8 @@ is( normalize_mac( $mac[0] ),
 # test hex 2 octet conversion
 # ----------------------------------
 my @hex;
-@hex = ( '0x' . unpack('H*', 'FOObarBAZ' ), 'FOObarBAZ' );
-is( hex2octet( $hex[0] ) , $hex[1], "$hex[0] -> $hex[1]" );
+@hex = ( '0x' . unpack( 'H*', 'FOObarBAZ' ), 'FOObarBAZ' );
+is( hex2octet( $hex[0] ), $hex[1], "$hex[0] -> $hex[1]" );
 
 @hex = ( sprintf( '%x', 1234567890 ), sprintf( '%x', 1234567890 ) );
 is( hex2octet( $hex[0] ), $hex[1],
@@ -130,7 +135,8 @@ $res = {
   '0.3.0' => 'baz',
 };
 
-is_deeply( idx2val( $vbl, $base_oid, undef, 1 ), $res, 'idx2val with tail 1' );
+is_deeply( idx2val( $vbl, $base_oid, undef, 1 ), $res,
+  'idx2val with tail 1' );
 
 $res = {
   '1.0.1' => 'foo',
@@ -146,7 +152,8 @@ $res = {
   '3' => 'baz',
 };
 
-is_deeply( idx2val( $vbl, $base_oid, 1, 2 ), $res, 'idx2val with pre 1 and tail 2' );
+is_deeply( idx2val( $vbl, $base_oid, 1, 2 ),
+  $res, 'idx2val with pre 1 and tail 2' );
 
 $base_oid = '1.2.3.41';
 
@@ -156,19 +163,36 @@ $res = {
   '3' => 'baz',
 };
 
-is_deeply( idx2val( $vbl, $base_oid, 2, 2 ), $res, 'idx2val with pre 2 and tail 2' );
+is_deeply( idx2val( $vbl, $base_oid, 2, 2 ),
+  $res, 'idx2val with pre 2 and tail 2' );
 
-eval { idx2val( $vbl, undef) };
-like($@, qr/missing attribute/, 'baseoid undefined');
+eval { idx2val( $vbl, undef ) };
+like( $@, qr/missing attribute/, 'baseoid undefined' );
 
-eval { idx2val( undef) };
-like($@, qr/missing attribute/, 'var_bind_list undefined');
+eval { idx2val(undef) };
+like( $@, qr/missing attribute/, 'var_bind_list undefined' );
 
 eval { idx2val( $vbl, $base_oid, -1, undef ) };
-like($@, qr/wrong format/, 'pre negative');
+like( $@, qr/wrong format/, 'pre negative' );
 
 eval { idx2val( $vbl, $base_oid, 1, -2 ) };
-like($@, qr/wrong format/, 'tail negative');
+like( $@, qr/wrong format/, 'tail negative' );
 
+# ----------------------------------
+# test push_error
+# ----------------------------------
+use_ok('Net::SNMP::Mixin');
+ok( Net::SNMP->can('errors'), 'errors exported by default into Net::SNMP' );
+
+eval { push_error() };
+like( $@, qr/missing attribute 'session'/, 'called without params' );
+
+my $session = Net::SNMP->new;
+eval { push_error($session) };
+like( $@, qr/missing attribute 'error_msg'/, 'called without error_msg' );
+
+ok( push_error( $session, 'my error' ), 'pushed error' );
+is( $session->errors(1), 'my error', 'test errors()' );
+is( $session->errors(),  '',         'errors() cleared' );
 
 # vim: ft=perl sw=2

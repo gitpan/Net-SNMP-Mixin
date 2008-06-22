@@ -32,7 +32,7 @@ A script to get the SNMP mib-II system-group values from agents.
 
 use blib;
 use Net::SNMP qw(:debug :snmp);
-use Net::SNMP::Mixin qw/mixer init_mixins/;
+use Net::SNMP::Mixin qw/mixer init_mixins errors/;
 
 use Getopt::Std;
 
@@ -53,7 +53,7 @@ push @agents, <STDIN> if $from_stdin;
 chomp @agents;
 usage('missing agents') unless @agents;
 
-my @sessions;
+my ( @sessions, @faulty_sessions );
 foreach my $agent ( sort @agents ) {
   my ( $session, $error ) = Net::SNMP->session(
     -community   => $community,
@@ -62,7 +62,7 @@ foreach my $agent ( sort @agents ) {
     -nonblocking => $nonblocking,
     -timeout     => $timeout,
     -retries     => $retries,
-    -debug       => $debug ? DEBUG_ALL: 0,
+    -debug       => $debug ? DEBUG_ALL : 0,
   );
 
   if ($error) {
@@ -74,31 +74,33 @@ foreach my $agent ( sort @agents ) {
   $session->init_mixins;
   push @sessions, $session;
 }
-snmp_dispatcher() if $Net::SNMP::NONBLOCKING;
+snmp_dispatcher();
 
 # remove sessions with error from the sessions list
-@sessions = grep { warn $_->error if $_->error; not $_->error } @sessions;
+@sessions =
+  grep { warn scalar $_->errors, "\n" if $_->errors; not $_->errors(1) }
+  @sessions;
 
-print_system();
+foreach my $session ( sort { $a->hostname cmp $b->hostname } @sessions ) {
+  print_system($session);
+}
 exit 0;
 
 ###################### end of main ######################
 
 sub print_system {
+  my $session = shift;
 
-  foreach my $session ( sort { $a->hostname cmp $b->hostname } @sessions ) {
-
-    my $system_group = $session->get_system_group;
-    print "\n";
-    printf "Hostname:    %s\n", $session->hostname;
-    printf "sysName:     %s\n", $system_group->{sysName};
-    printf "sysLocation: %s\n", $system_group->{sysLocation};
-    printf "sysContact:  %s\n", $system_group->{sysContact};
-    printf "sysObjectID: %s\n", $system_group->{sysObjectID};
-    printf "sysUpTime:   %s\n", $system_group->{sysUpTime};
-    printf "sysServices: %s\n", $system_group->{sysServices};
-    printf "sysDescr:    %s\n", $system_group->{sysDescr};
-  }
+  my $system_group = $session->get_system_group;
+  print "\n";
+  printf "Hostname:    %s\n", $session->hostname;
+  printf "sysName:     %s\n", $system_group->{sysName};
+  printf "sysLocation: %s\n", $system_group->{sysLocation};
+  printf "sysContact:  %s\n", $system_group->{sysContact};
+  printf "sysObjectID: %s\n", $system_group->{sysObjectID};
+  printf "sysUpTime:   %s\n", $system_group->{sysUpTime};
+  printf "sysServices: %s\n", $system_group->{sysServices};
+  printf "sysDescr:    %s\n", $system_group->{sysDescr};
 }
 
 sub usage {

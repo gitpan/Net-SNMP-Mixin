@@ -12,7 +12,7 @@ use Net::SNMP ();
 # this module export config
 #
 use Sub::Exporter -setup =>
-  { exports => [qw/idx2val hex2octet normalize_mac/], };
+  { exports => [qw/idx2val hex2octet normalize_mac push_error/], };
 
 =head1 NAME
 
@@ -20,11 +20,11 @@ Net::SNMP::Mixin::Util - helper class for Net::SNMP mixins
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
@@ -78,14 +78,14 @@ Returns the hash reference with index => value. Dies on error.
 sub idx2val {
   my ( $var_bind_list, $base_oid, $pre, $tail ) = @_;
 
-  die "missing attribute 'var_bind_list'" unless defined $var_bind_list;
-  die "missing attribute 'base_oid'"      unless defined $base_oid;
+  die "missing attribute 'var_bind_list'," unless defined $var_bind_list;
+  die "missing attribute 'base_oid',"      unless defined $base_oid;
 
   $pre  ||= 0;
   $tail ||= 0;
 
-  die "wrong format for 'pre'"  if $pre < 0;
-  die "wrong format for 'tail'" if $tail < 0;
+  die "wrong format for 'pre',"  if $pre < 0;
+  die "wrong format for 'tail'," if $tail < 0;
 
   my $idx;
   my $idx2val = {};
@@ -147,8 +147,6 @@ normalize MAC addresses to the IEEE form XX:XX:XX:XX:XX:XX
 
 or returns undef for format errors.
 
-=back
-
 =cut
 
 sub normalize_mac {
@@ -185,6 +183,34 @@ sub normalize_mac {
   return unless $norm_address =~ m /^($hex_digit{2}:){5}$hex_digit{2}$/;
 
   return $norm_address;
+}
+
+=item B<< push_error($session, $error_msg) >>
+
+Net::SNMP has only one slot for errors. During nonblocking calls it's possible that an error followed by a successful transaction is cleared before the user gets the chance to see the error. At least for the mixin modules we use an array buffer for all seen errors until they are explicit cleared.
+
+This utility routine helps the mixin authors to push an error into the buffer without the knowledge of the buffer internas.
+
+Dies if session isn't a Net::SNMP object or error_msg is missing.
+
+=back
+
+=cut
+
+sub push_error {
+  my ( $session, $error_msg ) = @_;
+
+  die "missing attribute 'session'," unless defined $session;
+  die "missing attribute 'error_msg'," unless defined $error_msg;
+
+  die "'session' isn't a Net::SNMP object,"
+    unless ref $session && $session->isa('Net::SNMP');
+
+  # prepare the error buffer if not already done
+  $session->{'Net::SNMP::Mixin'}{errors} ||= [];
+
+  # store the error_msg at the buffer end
+  push @{ $session->{'Net::SNMP::Mixin'}{errors} }, $error_msg;
 }
 
 unless ( caller() ) {

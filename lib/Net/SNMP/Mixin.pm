@@ -10,11 +10,11 @@ Net::SNMP::Mixin - mixin framework for Net::SNMP
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 ABSTRACT
 
@@ -43,7 +43,7 @@ use Package::Reaper;
 my @mixin_methods;
 
 BEGIN {
-  @mixin_methods = (qw/ mixer init_mixins /);
+  @mixin_methods = (qw/ mixer init_mixins errors /);
 }
 
 use Sub::Exporter -setup => {
@@ -59,7 +59,7 @@ my @class_mixins;
 =head1 SYNOPSIS
 
   use Net::SNMP;
-  use Net::SNMP::Mixin qw(mixer init_mixins);
+  use Net::SNMP::Mixin;
 
   my $session = Net::SNMP->session( -hostname => 'example.com' );
   
@@ -67,9 +67,11 @@ my @class_mixins;
   $session->mixer(qw/Net::SNMP::Mixin::Foo Net::SNMP::Mixin::Bar/);
   $session->init_mixins();
   
-  # event_loop for nonblocking sessions
-  snmp_dispatcher() if $Net::SNMP::NONBLOCKING;
-  die $session->error if $session->error;
+  # event_loop in case of nonblocking sessions
+  snmp_dispatcher();
+
+  # check for initialization errors
+  die $session->errors(1) if $session->errors;
 
   # use mixed-in methods to retrieve cooked SNMP info
   my $a = $session->get_foo_a();
@@ -87,7 +89,25 @@ The standard Net::SNMP get_... methods are still supported and the mixins fetch 
 
 =head1 DEFAULT EXPORTS
 
-The following helper methods are exported by default into the Net::SNMP namespace.
+These methods are exported by default into the B<< Net::SNMP >> namespace:
+
+=over 4
+
+=item *
+
+mixer
+
+=item *
+
+init_mixins
+
+=item *
+
+errors
+
+=back
+
+Please see the following description for details.
 
 =head2 B<< mixer(@module_names) >>
 
@@ -223,8 +243,8 @@ If there is an error in a mixin, the rest of the initialization is skipped to pr
 This method should be called in void context. In order to check successfull initialization the Net::SNMP error method I<< $session->error() >> should be checked. Please use the following idiom:
 
   $session->init_mixins;
-  snmp_dispatcher if $Net::SNMP::NONBLOCKING;
-  die $session->error if $session->error;
+  snmp_dispatcher;
+  die $session->errors(1) if $session->errors;
 
 =cut
 
@@ -250,15 +270,53 @@ sub init_mixins {
 
     # call the _init() method in module $mixin
     my $mixin_init = $mixin . '::_init';
-    my $result = eval { $session->$mixin_init($reload) };
+    eval { $session->$mixin_init($reload) };
 
+    # fatal error during mixin initialization, normally wrong
+    # calling convention with $reload
     Carp::croak $@ if $@;
 
-    # last mixin not successful initialized, skip the rest in order
-    # not to overwrite the last Net::SNMP error message.
-    last unless $result;
   }
   return;
+}
+
+=head2 B<< errors($clear) >>
+
+  @errors = $session->errors();
+  @errors = $session->errors(1);
+
+Net::SNMP::error() has only one slot for errors. During nonblocking calls it's possible that an error followed by a successful transaction is cleared before the user gets the chance to see the error. For the mixin modules we use an error buffer until they are explicit cleared.
+
+This method returns the list of all errors pushed by any mixin module. Called in scalar context returns a string of all @errors joined with "\n".
+
+The error buffer is cleared if the argument $clear is true.
+
+=cut
+
+sub errors {
+  my ( $session, $clear ) = @_;
+
+  # prepare the error buffer if not already done
+  $session->{'Net::SNMP::Mixin'}{errors} ||= [];
+  my @errors = @{ $session->{'Net::SNMP::Mixin'}{errors} };
+
+  # show also the last Net::SNMP::error if available
+  # and if not already included in the mixin error buffer
+  if ( my $net_snmp_error = $session->error ) {
+    push @errors, $net_snmp_error
+      unless grep m/\Q$net_snmp_error\E$/, @errors;
+  }
+
+  if ($clear) {
+
+    # clear the mixin error accumulator
+    $session->{'Net::SNMP::Mixin'}{errors} = [];
+
+    # clear the Net::SNMP error; with a private method, sigh.
+    $session->_error_clear;
+  }
+
+  return wantarray ? @errors : join( "\n", @errors );
 }
 
 =head1 GUIDELINES FOR MIXIN AUTHORS

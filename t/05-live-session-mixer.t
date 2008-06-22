@@ -104,9 +104,9 @@ SKIP: {
 
   eval { $session->init_mixins };
   like(
-    $session->error,
+    $session->errors,
     qr/No response from remote host/i,
-    'No response from remote host'
+    'test errors(), No response from remote host'
   );
 
   eval { $system_group = $session->get_system_group };
@@ -133,9 +133,9 @@ SKIP: {
   eval { $session->init_mixins };
   snmp_dispatcher();
   like(
-    $session->error,
+    $session->errors,
     qr/No response from remote host/i,
-    'No response from remote host'
+    'test errors(), No response from remote host'
   );
 
   eval { $system_group = $session->get_system_group };
