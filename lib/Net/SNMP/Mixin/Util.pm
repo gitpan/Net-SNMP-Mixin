@@ -20,11 +20,11 @@ Net::SNMP::Mixin::Util - helper class for Net::SNMP mixins
 
 =head1 VERSION
 
-Version 0.11
+Version 0.12
 
 =cut
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 =head1 SYNOPSIS
 
@@ -92,8 +92,13 @@ sub idx2val {
   foreach my $oid ( keys %$var_bind_list ) {
     next unless Net::SNMP::oid_base_match( $base_oid, $oid );
 
-    # cutoff the basoid, get the idx
     $idx = $oid;
+
+    # cutoff leading and trailing whitespace, bloody SNMP agents!
+    $idx =~ s/^\s*//;
+    $idx =~ s/\s*$//;
+
+    # cutoff the basoid, get the idx
     $idx =~ s/^$base_oid//;
 
     # if the idx isn't at the front of the index

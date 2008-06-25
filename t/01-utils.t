@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Test::More;
 
-plan tests => 50;
+plan tests => 51;
 
 use_ok('Net::SNMP');
 
@@ -165,6 +165,24 @@ $res = {
 
 is_deeply( idx2val( $vbl, $base_oid, 2, 2 ),
   $res, 'idx2val with pre 2 and tail 2' );
+
+# test oids with leading or trailing space, grml
+$vbl = {
+  '1.2.3.41.35.1  '      => 'foo',
+  ' 1.2.3.41.35.2'       => 'bar',
+  '   1.2.3.41.35.3    ' => 'baz',
+};
+
+$base_oid = '1.2.3.41.35';
+
+$res = {
+  '1' => 'foo',
+  '2' => 'bar',
+  '3' => 'baz',
+};
+
+is_deeply( idx2val( $vbl, $base_oid, undef, undef ),
+  $res, 'idx2val with leading and trailing whitespace' );
 
 eval { idx2val( $vbl, undef ) };
 like( $@, qr/missing attribute/, 'baseoid undefined' );

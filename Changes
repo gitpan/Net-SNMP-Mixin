@@ -1,5 +1,8 @@
 Revision history for Net-SNMP-Mixin
 
+0.12	Tue Jun 24 11:34:31 MEST 2008
+	changed idx2val, some SNMP agents are really buggy, sigh
+
 0.11	Sun Jun 22 10:55:37 MEST 2008
 	addet errors() method to record all errors
 	Net::SNMP::error has only one slot, that's not helpful
